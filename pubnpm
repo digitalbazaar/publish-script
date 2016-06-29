@@ -1,0 +1,32 @@
+#!/bin/bash
+PACKAGE_NAME=$(node -p -e "require('./package.json').name")
+PACKAGE_REPO=$(node -p -e "require('./package.json').repository.url")
+PACKAGE_DIR=${PWD}
+if [ -z "$1" ]
+  then
+    echo 'A release type must be specified: [major | minor | patch]'
+    exit 1
+fi
+if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]
+  then
+    echo 'Slashes detected in package name.  Aborting.'
+    exit 1
+fi
+# incase changelog is new
+git add .
+git commit -m 'Update changelog.'
+npm version $1 -m 'Release %s.'
+git push
+git push --tags
+mkdir -p ~/dev/release
+cd ~/dev/release
+rm -rf ${PACKAGE_NAME}
+echo 'Waiting two seconds...'
+sleep 2
+git clone $PACKAGE_REPO
+cd ${PACKAGE_NAME}
+npm publish
+cd ${PACKAGE_DIR}
+npm version prepatch -m 'Start %s.'
+git push
+git push --tags

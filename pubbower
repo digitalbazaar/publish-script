@@ -1,0 +1,15 @@
+#!/bin/bash
+if [ -z "$1" ]
+  then
+    echo 'A release type must be specified: [major | minor | patch]'
+    exit 1
+fi
+# incase changelog is new.
+git add .
+git commit -m 'Update changelog.'
+bower version ${1} -m 'Release %s.'
+git push
+git push --tags
+bower version prepatch -m 'Start %s.'
+git push
+git push --tags

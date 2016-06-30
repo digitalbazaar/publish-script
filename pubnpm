@@ -13,18 +13,25 @@ if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]
     exit 1
 fi
 # incase changelog is new
-git add .
+git add CHANGELOG.md
 git commit -m 'Update changelog.'
 npm version $1 -m 'Release %s.'
 git push
 git push --tags
-mkdir -p ~/dev/release
-cd ~/dev/release
+NEW_VERSION=$(node -p -e "require('./package.json').version")
+mkdir /tmp/digital-bazaar-release
+if [ $? -ne 0 ]
+  then
+    echo 'Could not create release folder.  Aborting.'
+    exit 1
+fi
+cd /tmp/digital-bazaar-release
 rm -rf ${PACKAGE_NAME}
 echo 'Waiting two seconds...'
 sleep 2
 git clone $PACKAGE_REPO
 cd ${PACKAGE_NAME}
+git checkout tags/${NEW_VERSION}
 npm publish
 cd ${PACKAGE_DIR}
 npm version prepatch -m 'Start %s.'

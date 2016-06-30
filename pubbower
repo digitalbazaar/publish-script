@@ -5,7 +5,7 @@ if [ -z "$1" ]
     exit 1
 fi
 # incase changelog is new.
-git add .
+git add CHANGELOG.md
 git commit -m 'Update changelog.'
 bower version ${1} -m 'Release %s.'
 git push

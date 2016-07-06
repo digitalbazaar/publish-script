@@ -2,6 +2,7 @@
 PACKAGE_NAME=$(node -p -e "require('./package.json').name")
 PACKAGE_REPO=$(node -p -e "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
+RELEASE_FOLDER="/tmp/digital-bazaar-release"
 if [ -z "$1" ]
   then
     echo 'A release type must be specified: [major | minor | patch]'
@@ -19,13 +20,16 @@ npm version $1 -m 'Release %s.'
 git push
 git push --tags
 NEW_VERSION=$(node -p -e "require('./package.json').version")
-mkdir /tmp/digital-bazaar-release
-if [ $? -ne 0 ]
+if [ ! -d "${RELEASE_FOLDER}" ]
   then
-    echo 'Could not create release folder.  Aborting.'
-    exit 1
+    mkdir -p "${RELEASE_FOLDER}"
+    if [ $? -ne 0 ]
+      then
+        echo 'Could not create release folder.  Aborting.'
+        exit 1
+    fi
 fi
-cd /tmp/digital-bazaar-release
+cd "${RELEASE_FOLDER}"
 rm -rf ${PACKAGE_NAME}
 echo 'Waiting two seconds...'
 sleep 2

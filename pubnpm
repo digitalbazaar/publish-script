@@ -13,6 +13,16 @@ if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]
     echo 'Slashes detected in package name.  Aborting.'
     exit 1
 fi
+# prepare release folder
+if [ ! -d "${RELEASE_FOLDER}" ]
+then
+  mkdir -p "${RELEASE_FOLDER}"
+  if [ $? -ne 0 ]
+  then
+    echo 'Could not create release folder.  Aborting.'
+    exit 1
+  fi
+fi
 # incase changelog is new
 git add CHANGELOG.md
 git commit -m 'Update changelog.'
@@ -20,15 +30,6 @@ npm version $1 -m 'Release %s.'
 git push
 git push --tags
 NEW_VERSION=$(node -p -e "require('./package.json').version")
-if [ ! -d "${RELEASE_FOLDER}" ]
-  then
-    mkdir -p "${RELEASE_FOLDER}"
-    if [ $? -ne 0 ]
-      then
-        echo 'Could not create release folder.  Aborting.'
-        exit 1
-    fi
-fi
 cd "${RELEASE_FOLDER}"
 rm -rf ${PACKAGE_NAME}
 echo 'Waiting two seconds...'

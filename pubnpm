@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ ! -e package.json ]]
+  then
+    echo 'package.json file does not exist.  Aborting.'
+    exit 1
+fi
 PACKAGE_NAME=$(node -p -e "require('./package.json').name")
 PACKAGE_REPO=$(node -p -e "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}

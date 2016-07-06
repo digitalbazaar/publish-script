@@ -1,4 +1,9 @@
 #!/bin/bash
+if [[ ! -e bower.json ]]
+  then
+    echo 'bower.json file does not exist.  Aborting.'
+    exit 1
+fi
 if [ -z "$1" ]
   then
     echo 'A release type must be specified: [major | minor | patch]'

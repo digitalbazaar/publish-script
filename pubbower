@@ -9,7 +9,7 @@ if [ -z "$1" ]; then
 fi
 howmany() { echo $#; }
 # other is added here to capture a new changelog
-MODIFIED_FILES=$(git ls-files --modified --other)
+MODIFIED_FILES=$(git ls-files --modified --other --exclude-standard)
 if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
   echo "Modified files:" ${MODIFIED_FILES}
   echo "CHANGELOG.md must be the ONLY modified file.  Aborting."

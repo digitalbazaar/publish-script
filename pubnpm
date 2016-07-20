@@ -1,35 +1,37 @@
 #!/bin/bash
-if [[ ! -e package.json ]]
-  then
-    echo 'package.json file does not exist.  Aborting.'
-    exit 1
+if [[ ! -e package.json ]]; then
+  echo 'package.json file does not exist.  Aborting.'
+  exit 1
 fi
 PACKAGE_NAME=$(node -p -e "require('./package.json').name")
 PACKAGE_REPO=$(node -p -e "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
-if [ -z "$1" ]
-  then
-    echo 'A release type must be specified: [major | minor | patch]'
-    exit 1
+if [ -z "$1" ]; then
+  echo 'A release type must be specified: [major | minor | patch]'
+  exit 1
 fi
-if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]
-  then
-    echo 'Slashes detected in package name.  Aborting.'
-    exit 1
+if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]; then
+  echo 'Slashes detected in package name.  Aborting.'
+  exit 1
 fi
 # prepare release folder
-if [ ! -d "${RELEASE_FOLDER}" ]
-then
+if [ ! -d "${RELEASE_FOLDER}" ]; then
   mkdir -p "${RELEASE_FOLDER}"
-  if [ $? -ne 0 ]
-  then
+  if [ $? -ne 0 ]; then
     echo 'Could not create release folder.  Aborting.'
     exit 1
   fi
 fi
-# incase changelog is new
+# if changelog is new, it must be added to tracked files
 git add CHANGELOG.md
+howmany() { echo $#; }
+MODIFIED_FILES=$(git ls-files --modified)
+if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
+  echo "Modified files:" ${MODIFIED_FILES}
+  echo "CHANGELOG.md must be the ONLY modified file.  Aborting."
+  exit 1
+fi
 git commit -m 'Update changelog.'
 npm version $1 -m 'Release %s.'
 git push

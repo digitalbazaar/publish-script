@@ -1,16 +1,21 @@
 #!/bin/bash
-if [[ ! -e bower.json ]]
-  then
-    echo 'bower.json file does not exist.  Aborting.'
-    exit 1
+if [[ ! -e bower.json ]]; then
+  echo 'bower.json file does not exist.  Aborting.'
+  exit 1
 fi
-if [ -z "$1" ]
-  then
-    echo 'A release type must be specified: [major | minor | patch]'
-    exit 1
+if [ -z "$1" ]; then
+  echo 'A release type must be specified: [major | minor | patch]'
+  exit 1
 fi
-# incase changelog is new.
+# if changelog is new, it must be added to tracked files
 git add CHANGELOG.md
+howmany() { echo $#; }
+MODIFIED_FILES=$(git ls-files --modified)
+if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
+  echo "Modified files:" ${MODIFIED_FILES}
+  echo "CHANGELOG.md must be the ONLY modified file.  Aborting."
+  exit 1
+fi
 git commit -m 'Update changelog.'
 bower version ${1} -m 'Release %s.'
 git push

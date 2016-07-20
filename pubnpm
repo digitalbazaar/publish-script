@@ -23,8 +23,6 @@ if [ ! -d "${RELEASE_FOLDER}" ]; then
     exit 1
   fi
 fi
-# if changelog is new, it must be added to tracked files
-git add CHANGELOG.md
 howmany() { echo $#; }
 MODIFIED_FILES=$(git ls-files --modified)
 if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
@@ -32,6 +30,8 @@ if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.
   echo "CHANGELOG.md must be the ONLY modified file.  Aborting."
   exit 1
 fi
+# if changelog is new, it must be added to tracked files
+git add CHANGELOG.md
 git commit -m 'Update changelog.'
 npm version $1 -m 'Release %s.'
 git push

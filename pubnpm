@@ -1,4 +1,17 @@
 #!/bin/bash
+usage () { echo "Usage: pubnpm [OPTION] [major | minor | patch]
+
+CHANGELOG.md must be the only modified file in the working tree.
+
+Options:
+  -h             Show help." 1>&2; exit 1; }
+while getopts h o; do
+  case "${o}" in
+    h)
+      usage
+      ;;
+  esac
+done
 if [[ ! -e package.json ]]; then
   echo 'package.json file does not exist.  Aborting.'
   exit 1
@@ -7,7 +20,7 @@ PACKAGE_NAME=$(node -p -e "require('./package.json').name")
 PACKAGE_REPO=$(node -p -e "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
-if [ -z "$1" ]; then
+if [ -z "$1" ] || ! [[ "$1" =~ ^(patch|minor|major)$ ]]; then
   echo 'A release type must be specified: [major | minor | patch]'
   exit 1
 fi

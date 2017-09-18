@@ -35,6 +35,6 @@ bower version ${1} -m 'Release %s.'
 git push
 git push --tags
 bower version prepatch -m 'Start %s.'
-DEV_VERSION=$(node -p -e "require('./bower.json').version")
+DEV_VERSION=$(node -p "require('./bower.json').version")
 git tag -d v${DEV_VERSION}
 git push

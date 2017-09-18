@@ -126,6 +126,6 @@ else
 fi
 run_cmd cd ${PACKAGE_DIR}
 run_cmd npm version prepatch -m 'Start %s.'
-DEV_VERSION=$(node -p -e "require('./package.json').version")
+DEV_VERSION=$(node -p "require('./package.json').version")
 run_cmd git tag -d v${DEV_VERSION}
 run_cmd git push

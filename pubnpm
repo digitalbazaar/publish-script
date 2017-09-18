@@ -16,8 +16,8 @@ if [[ ! -e package.json ]]; then
   echo 'package.json file does not exist.  Aborting.'
   exit 1
 fi
-PACKAGE_NAME=$(node -p -e "require('./package.json').name")
-PACKAGE_REPO=$(node -p -e "require('./package.json').repository.url")
+PACKAGE_NAME=$(node -p "require('./package.json').name")
+PACKAGE_REPO=$(node -p "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
 if [ -z "$1" ] || ! [[ "$1" =~ ^(patch|minor|major)$ ]]; then
@@ -50,7 +50,7 @@ git commit -m 'Update changelog.'
 npm version $1 -m 'Release %s.'
 git push
 git push --tags
-NEW_VERSION=$(node -p -e "require('./package.json').version")
+NEW_VERSION=$(node -p "require('./package.json').version")
 cd "${RELEASE_FOLDER}"
 rm -rf ${PACKAGE_NAME}
 echo 'Waiting two seconds...'

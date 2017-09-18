@@ -58,6 +58,10 @@ sleep 2
 git clone $PACKAGE_REPO
 cd ${PACKAGE_NAME}
 git checkout tags/v${NEW_VERSION}
+# if convention of a "build" target exists, assume an install is needed
+if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ]; then
+  npm install
+fi
 npm publish
 cd ${PACKAGE_DIR}
 npm version prepatch -m 'Start %s.'

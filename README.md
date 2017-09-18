@@ -7,17 +7,18 @@ folder immediately after `CHANGELOG.md` has been modified in preparation for the
 release.
 
 `pubnpm` is intended for repositories that are have only a `package.json` file
-or both a `package.json` file and a `bower.json` file.
+or both a `package.json` file and a `bower.json` file. If a `build` script
+exists in `package.json` then `npm install` will be run before publishing.
 
 `pubbower` is intended for repositories that have only a `bower.json` file.
 
 Both scripts require a single argument, the release type, which is one of the
 following: [patch | minor | major]
 
-```
-// a npm patch release
-pubnpm patch
+```shell
+# a npm patch release
+$ pubnpm patch
 
-// a bower minor release
-pubbower minor
+# a bower minor release
+$ pubbower minor
 ```

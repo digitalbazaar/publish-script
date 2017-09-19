@@ -108,7 +108,7 @@ run_cmd cd "${RELEASE_FOLDER}"
 run_cmd rm -rf ${PACKAGE_NAME}
 echo 'Waiting two seconds...'
 run_cmd sleep 2
-run_cmd git clone $PACKAGE_REPO
+run_cmd git clone $PACKAGE_REPO ${PACKAGE_NAME}
 run_cmd cd ${PACKAGE_NAME}
 if [ $DRY_RUN = true ]; then
    echo "# Note: The following version is the old version due to dry-run mode."

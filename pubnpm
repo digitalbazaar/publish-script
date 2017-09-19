@@ -1,17 +1,59 @@
 #!/bin/bash
-usage () { echo "Usage: pubnpm [OPTION] [major | minor | patch]
+
+# Run a command.  Handle verbose and dry-run options.
+#
+# run_cmd cmd [args...]
+#
+run_cmd() {
+   if [ $VERBOSE = true ]; then
+      echo $@
+   fi
+   if [ $DRY_RUN = false ]; then
+      $@
+      if [ $? -ne 0 ]; then
+         echo "ERROR: Command failed: $@"
+         exit 1
+      fi
+   fi
+}
+
+help() {
+  echo "Usage: pubnpm [OPTION] [major | minor | patch]
 
 CHANGELOG.md must be the only modified file in the working tree.
 
 Options:
-  -h             Show help." 1>&2; exit 1; }
-while getopts h o; do
-  case "${o}" in
-    h)
-      usage
-      ;;
+  -h             Show help.
+  -v, --verbose  Verbose execution.
+  -n, --dry-run  Dry run.
+  -t, --tag=TAG  Use npm publish tag.
+" 1>&2
+  exit
+}
+
+OPTS=`getopt -o hvnt: --long help,verbose,dry-run,tag: -n 'pubnpm' -- "$@"`
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+VERBOSE=false
+DRY_RUN=false
+TAG=
+
+while true; do
+  case "$1" in
+    -h|--help) help ;;
+    -v|--verbose) VERBOSE=true; shift ;;
+    -n|--dry-run) DRY_RUN=true; shift ;;
+    -t|--tag) TAG="$2"; shift; shift ;;
+    --) shift; break ;;
+    *) break ;;
   esac
 done
+
+VERSION_TYPE=$1
+
 if [[ ! -e package.json ]]; then
   echo 'package.json file does not exist.  Aborting.'
   exit 1
@@ -20,7 +62,7 @@ PACKAGE_NAME=$(node -p "require('./package.json').name")
 PACKAGE_REPO=$(node -p "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
-if [ -z "$1" ] || ! [[ "$1" =~ ^(patch|minor|major)$ ]]; then
+if [ -z "$VERSION_TYPE" ] || ! [[ "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; then
   echo 'A release type must be specified: [major | minor | patch]'
   exit 1
 fi
@@ -28,9 +70,20 @@ if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]; then
   echo 'Slashes detected in package name.  Aborting.'
   exit 1
 fi
+
+if [ "$VERBOSE" = true ]; then
+  echo DRY_RUN=$DRY_RUN
+  echo TAG=$TAG
+  echo VERSION_TYPE=$VERSION_TYPE
+  echo PACKAGE_NAME=$PACKAGE_NAME
+  echo PACKAGE_REPO=$PACKAGE_REPO
+  echo PACKAGE_DIR=$PACKAGE_DIR
+  echo RELEASE_FOLDER=$RELEASE_FOLDER
+fi
+
 # prepare release folder
 if [ ! -d "${RELEASE_FOLDER}" ]; then
-  mkdir -p "${RELEASE_FOLDER}"
+  run_cmd mkdir -p "${RELEASE_FOLDER}"
   if [ $? -ne 0 ]; then
     echo 'Could not create release folder.  Aborting.'
     exit 1
@@ -45,25 +98,33 @@ if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.
   exit 1
 fi
 # if changelog is new, it must be added to tracked files
-git add CHANGELOG.md
-git commit -m 'Update changelog.'
-npm version $1 -m 'Release %s.'
-git push
-git push --tags
+run_cmd git add CHANGELOG.md
+run_cmd git commit -m 'Update changelog.'
+run_cmd npm version $VERSION_TYPE -m 'Release %s.'
+run_cmd git push
+run_cmd git push --tags
 NEW_VERSION=$(node -p "require('./package.json').version")
-cd "${RELEASE_FOLDER}"
-rm -rf ${PACKAGE_NAME}
+run_cmd cd "${RELEASE_FOLDER}"
+run_cmd rm -rf ${PACKAGE_NAME}
 echo 'Waiting two seconds...'
-sleep 2
-git clone $PACKAGE_REPO
-cd ${PACKAGE_NAME}
-git checkout tags/v${NEW_VERSION}
+run_cmd sleep 2
+run_cmd git clone $PACKAGE_REPO
+run_cmd cd ${PACKAGE_NAME}
+if [ $DRY_RUN = true ]; then
+   echo "# Note: The following version is the old version due to dry-run mode."
+fi
+run_cmd git checkout tags/v${NEW_VERSION}
 # if convention of a "build" target exists, assume an install is needed
 if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ]; then
-  npm install
+  echo '"build" script found, running install...'
+  run_cmd npm install
 fi
-npm publish
-cd ${PACKAGE_DIR}
-npm version prepatch -m 'Start %s.'
-git push
-git push --tags
+if [ x$TAG = x ]; then
+  run_cmd npm publish
+else
+  run_cmd npm publish --tag $TAG
+fi
+run_cmd cd ${PACKAGE_DIR}
+run_cmd npm version prepatch -m 'Start %s.'
+run_cmd git push
+run_cmd git push --tags

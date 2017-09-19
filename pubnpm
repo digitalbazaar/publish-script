@@ -5,7 +5,7 @@
 # run_cmd cmd [args...]
 #
 run_cmd() {
-   if [ $VERBOSE = true ]; then
+   if [ $VERBOSE = true -o $DRY_RUN = true ]; then
       echo $@
    fi
    if [ $DRY_RUN = false ]; then

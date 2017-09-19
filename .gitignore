@@ -1,0 +1,6 @@
+*.log
+*.sw[nop]
+*~
+.project
+.settings
+TAGS

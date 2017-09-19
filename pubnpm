@@ -127,5 +127,8 @@ fi
 run_cmd cd ${PACKAGE_DIR}
 run_cmd npm version prepatch -m 'Start %s.'
 DEV_VERSION=$(node -p "require('./package.json').version")
+if [ $DRY_RUN = true ]; then
+   echo "# Note: The following version is the old version due to dry-run mode."
+fi
 run_cmd git tag -d v${DEV_VERSION}
 run_cmd git push

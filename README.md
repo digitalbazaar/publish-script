@@ -22,3 +22,15 @@ $ pubnpm patch
 # a bower minor release
 $ pubbower minor
 ```
+`pubnpm` options:
+
+* `-h` or `--help`: show help
+* `-v` or `--verbose`: be verbose running commands
+* `-n` or `--dry-run`: show commands that will be run without executing them
+* `-t TAG` or `--tag TAG`: use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
+
+The tag feature is useful if releasing to a "dev" branch vs the "latest":
+
+```shell
+$ pubnpm -v -t dev patch
+```

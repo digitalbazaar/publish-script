@@ -17,7 +17,7 @@ run_cmd() {
    fi
 }
 
-help() {
+help_gnu() {
   echo "Usage: pubnpm [OPTION] [major | minor | patch]
 
 CHANGELOG.md must be the only modified file in the working tree.
@@ -31,11 +31,45 @@ Options:
   exit
 }
 
-OPTS=`getopt -o hvnt: --long help,verbose,dry-run,tag: -n 'pubnpm' -- "$@"`
+help_not_gnu() {
+  echo "Usage: pubnpm [OPTION] [major | minor | patch]
 
-if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+CHANGELOG.md must be the only modified file in the working tree.
 
-eval set -- "$OPTS"
+Options:
+  -h  Show help.
+  -v  Verbose execution.
+  -n  Dry run.
+  -t  Use npm publish tag.
+" 1>&2
+  exit
+}
+
+help() {
+  if [ "$GNU_GETOPT" = true ]; then
+    help_gnu
+  else
+    help_not_gnu
+  fi
+}
+
+# check getopt version
+out=$(getopt -T)
+if (( $? != 4 )) && [[ -n $out ]]; then
+  GNU_GETOPT=false
+else
+  GNU_GETOPT=true
+fi
+
+if [ "$GNU_GETOPT" = true ]; then
+  OPTS=`getopt -o hvnt: --long help,verbose,dry-run,tag: -n 'pubnpm' -- "$@"`
+  if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+  eval set -- "$OPTS"
+else
+  OPTS=`getopt hvnt: $*`
+  if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+  eval set -- "$OPTS"
+fi
 
 VERBOSE=false
 DRY_RUN=false

@@ -29,6 +29,8 @@ $ pubbower minor
 * `-n` or `--dry-run`: show commands that will be run without executing them
 * `-t TAG` or `--tag TAG`: use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
 
+**NOTE**: MacOS only supports short options.
+
 The tag feature is useful if releasing to a "dev" branch vs the "latest":
 
 ```shell

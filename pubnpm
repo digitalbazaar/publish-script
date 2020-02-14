@@ -96,6 +96,7 @@ PACKAGE_NAME=$(node -p "require('./package.json').name")
 PACKAGE_REPO=$(node -p "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
+NPM_WHOAMI=$(npm whoami)
 if [ -z "$VERSION_TYPE" ] || ! [[ "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; then
   echo 'ERROR: A release type must be specified: [major | minor | patch]'
   exit 1
@@ -113,6 +114,27 @@ if [ "$VERBOSE" = true ]; then
   echo PACKAGE_REPO=$PACKAGE_REPO
   echo PACKAGE_DIR=$PACKAGE_DIR
   echo RELEASE_FOLDER=$RELEASE_FOLDER
+  echo NPM_WHOAMI=$NPM_WHOAMI
+fi
+
+# check npm ownership access
+# always run, even in dry-run mode
+if [ "$VERBOSE" = true ]; then
+  echo "# NOTE: NPM checking package ownership"
+fi
+NPM_OWNS=$(npm owner ls | cut -d ' ' -f 1 | grep ^$NPM_WHOAMI$)
+
+if [ x"$NPM_WHOAMI" = x"$NPM_OWNS" ]; then
+  if [ "$VERBOSE" = true ]; then
+    echo "# NOTE: NPM ownership check passed"
+  fi
+else
+  echo "ERROR: NPM ownership check failed"
+  if [ "$DRY_RUN" = true ]; then
+    echo "# NOTE: Continuing in dry-run mode with failed ownership check"
+  else
+    exit 1
+  fi
 fi
 
 # prepare release folder

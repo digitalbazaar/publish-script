@@ -63,11 +63,11 @@ fi
 
 if [ "$GNU_GETOPT" = true ]; then
   OPTS=`getopt -o hvnt: --long help,verbose,dry-run,tag: -n 'pubnpm' -- "$@"`
-  if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+  if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 else
   OPTS=`getopt hvnt: $*`
-  if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+  if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 fi
 
@@ -89,7 +89,7 @@ done
 VERSION_TYPE=$1
 
 if [[ ! -e package.json ]]; then
-  echo 'package.json file does not exist.  Aborting.'
+  echo 'ERROR: package.json file does not exist.  Aborting.'
   exit 1
 fi
 PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -97,11 +97,11 @@ PACKAGE_REPO=$(node -p "require('./package.json').repository.url")
 PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
 if [ -z "$VERSION_TYPE" ] || ! [[ "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; then
-  echo 'A release type must be specified: [major | minor | patch]'
+  echo 'ERROR: A release type must be specified: [major | minor | patch]'
   exit 1
 fi
 if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]; then
-  echo 'Slashes detected in package name.  Aborting.'
+  echo 'ERROR: Slashes detected in package name.  Aborting.'
   exit 1
 fi
 
@@ -119,7 +119,7 @@ fi
 if [ ! -d "${RELEASE_FOLDER}" ]; then
   run_cmd mkdir -p "${RELEASE_FOLDER}"
   if [ $? -ne 0 ]; then
-    echo 'Could not create release folder.  Aborting.'
+    echo "ERROR: Could not create release folder.  Aborting."
     exit 1
   fi
 fi
@@ -128,7 +128,7 @@ howmany() { echo $#; }
 MODIFIED_FILES=$(git ls-files --modified --other --exclude-standard)
 if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
   echo "Modified files:" ${MODIFIED_FILES}
-  echo "CHANGELOG.md must be the ONLY modified file.  Aborting."
+  echo "ERROR: CHANGELOG.md must be the ONLY modified file.  Aborting."
   exit 1
 fi
 # if changelog is new, it must be added to tracked files
@@ -140,12 +140,12 @@ run_cmd git push --tags
 NEW_VERSION=$(node -p "require('./package.json').version")
 run_cmd cd "${RELEASE_FOLDER}"
 run_cmd rm -rf ${PACKAGE_NAME}
-echo 'Waiting two seconds...'
+echo '# NOTE: Waiting two seconds...'
 run_cmd sleep 2
 run_cmd git clone $PACKAGE_REPO ${PACKAGE_NAME}
 run_cmd cd ${PACKAGE_NAME}
 if [ $DRY_RUN = true ]; then
-   echo "# Note: The following version is the old version due to dry-run mode."
+   echo "# NOTE: The following version is the old version due to dry-run mode."
 fi
 run_cmd git checkout tags/v${NEW_VERSION}
 # if convention of a "build" target exists, assume an install is needed
@@ -162,7 +162,7 @@ run_cmd cd ${PACKAGE_DIR}
 run_cmd npm version prepatch -m 'Start %s.'
 DEV_VERSION=$(node -p "require('./package.json').version")
 if [ $DRY_RUN = true ]; then
-   echo "# Note: The following version is the old version due to dry-run mode."
+   echo "# NOTE: The following version is the old version due to dry-run mode."
 fi
 run_cmd git tag -d v${DEV_VERSION}
 run_cmd git push

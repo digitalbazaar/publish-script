@@ -24,10 +24,12 @@ $ pubbower minor
 ```
 `pubnpm` options:
 
-* `-h` or `--help`: show help
-* `-v` or `--verbose`: be verbose running commands
-* `-n` or `--dry-run`: show commands that will be run without executing them
-* `-t TAG` or `--tag TAG`: use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
+* `-h` or `--help`: Show help.
+* `-v` or `--verbose`: Be verbose running commands.
+* `-n` or `--dry-run`: Show commands that will be run without executing them.
+* `-t TAG` or `--tag TAG`: Use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
+* `-b BRANCH` or `--branch=BRANCH`: Ensure running on a git branch (default: master, empty string to skip).
+* `-N` or `--new`: Skip owner check for a new package.
 
 **NOTE**: MacOS only supports short options.
 

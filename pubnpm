@@ -65,11 +65,11 @@ else
 fi
 
 if [ "$GNU_GETOPT" = true ]; then
-  OPTS=`getopt -o hvnt:b: --long help,verbose,dry-run,tag,branch: -n 'pubnpm' -- "$@"`
+  OPTS=`getopt -o hvnt:b:N -l help,verbose,dry-run,tag:,branch:,new -n 'pubnpm' -- "$@"`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 else
-  OPTS=`getopt hvnt:b: $*`
+  OPTS=`getopt hvnt:b:N $*`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 fi
@@ -78,6 +78,7 @@ VERBOSE=false
 DRY_RUN=false
 TAG=
 BRANCH=master
+NEW=false
 
 while true; do
   case "$1" in
@@ -86,6 +87,7 @@ while true; do
     -n|--dry-run) DRY_RUN=true; shift ;;
     -t|--tag) TAG="$2"; shift; shift ;;
     -b|--branch) BRANCH="$2"; shift; shift ;;
+    -N|--new) NEW=true; shift ;;
     --) shift; break ;;
     *) break ;;
   esac
@@ -123,23 +125,29 @@ if [ "$VERBOSE" = true ]; then
   echo NPM_WHOAMI=$NPM_WHOAMI
 fi
 
-# check npm ownership access
-# always run, even in dry-run mode
-if [ "$VERBOSE" = true ]; then
-  echo "# NOTE: checking NPM package ownership"
-fi
-NPM_OWNS=$(npm owner ls | cut -d ' ' -f 1 | grep ^$NPM_WHOAMI$)
-
-if [ x"$NPM_WHOAMI" = x"$NPM_OWNS" ]; then
+if [ "$NEW" = true ]; then
   if [ "$VERBOSE" = true ]; then
-    echo "# NOTE: NPM package ownership check passed"
+    echo "# NOTE: skipping owner check"
   fi
 else
-  echo "ERROR: NPM pacakge ownership check failed"
-  if [ "$DRY_RUN" = true ]; then
-    echo "# NOTE: Continuing in dry-run mode with failed NPM ownership check"
+  # check npm ownership access
+  # always run, even in dry-run mode
+  if [ "$VERBOSE" = true ]; then
+    echo "# NOTE: checking NPM package ownership"
+  fi
+  NPM_OWNS=$(npm owner ls | cut -d ' ' -f 1 | grep ^$NPM_WHOAMI$)
+
+  if [ x"$NPM_WHOAMI" = x"$NPM_OWNS" ]; then
+    if [ "$VERBOSE" = true ]; then
+      echo "# NOTE: NPM package ownership check passed"
+    fi
   else
-    exit 1
+    echo "ERROR: NPM pacakge ownership check failed"
+    if [ "$DRY_RUN" = true ]; then
+      echo "# NOTE: Continuing in dry-run mode with failed NPM ownership check"
+    else
+      exit 1
+    fi
   fi
 fi
 

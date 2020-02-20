@@ -154,7 +154,9 @@ if [ x"$BRANCH" = x ]; then
     echo "# NOTE: git branch check skipped via options"
   fi
 else
-  GIT_BRANCH=$(git branch --show-current)
+  # newer git
+  #GIT_BRANCH=$(git branch --show-current)
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [ x"$BRANCH" = x"$GIT_BRANCH" ]; then
     if [ "$VERBOSE" = true ]; then
       echo "# NOTE: git branch check passed"

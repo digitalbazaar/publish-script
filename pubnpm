@@ -29,6 +29,7 @@ Options:
   -t, --tag=TAG  Use npm publish tag.
   -b, --branch=BRANCH
                  Ensure git branch (default: master, empty string to skip).
+  -N, --new      Skip owner check for a new package.
 " 1>&2
   exit
 }
@@ -44,6 +45,7 @@ Options:
   -n  Dry run.
   -t  Use npm publish tag.
   -b  Ensure git branch (default: master, empty string to skip).
+  -N  Skip owner check for a new package.
 " 1>&2
   exit
 }

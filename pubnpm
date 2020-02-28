@@ -277,7 +277,7 @@ fi
 run_cmd git checkout tags/v${NEW_VERSION}
 # if convention of a "build" target exists, assume an install is needed
 if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ]; then
-  echo '"build" script found, running install...'
+  echo "# $MSG_NOTE: \"build\" script found, running install..."
   run_cmd npm install
 fi
 if [ x"$TAG" = x ]; then

@@ -1,5 +1,40 @@
 #!/bin/bash
 
+# color support (to make publishing more fun)
+# https://unix.stackexchange.com/questions/9957/how-to-check-if-bash-can-print-colors
+# examples:
+# echo "${c_red}error${c_normal}"
+# echo "${c_green}success${c_normal}"
+# echo "${c_green}0.052${c_normal} ${c_bold}${c_green}2,816.00 kb${c_normal}"
+setup_color() {
+  # skip in "never" mode
+  if [ x"$COLOR" = never ]; then
+    return
+  fi
+  # check if stdout is a terminal or "always" mode...
+  if [ -t 1 -o x"$COLOR" = always ]; then
+    # see if it supports colors...
+    ncolors=$(tput colors)
+
+    # use colors if available or "always" mode...
+    if [ -n "$ncolors" -o x"$COLOR" = always ] && \
+       [ $ncolors -ge 8 -o x"$COLOR" = always ]; then
+      c_bold="$(tput bold)"
+      c_underline="$(tput smul)"
+      c_standout="$(tput smso)"
+      c_normal="$(tput sgr0)"
+      c_black="$(tput setaf 0)"
+      c_red="$(tput setaf 1)"
+      c_green="$(tput setaf 2)"
+      c_yellow="$(tput setaf 3)"
+      c_blue="$(tput setaf 4)"
+      c_magenta="$(tput setaf 5)"
+      c_cyan="$(tput setaf 6)"
+      c_white="$(tput setaf 7)"
+    fi
+  fi
+}
+
 # Run a command.  Handle verbose and dry-run options.
 #
 # run_cmd cmd [args...]
@@ -11,7 +46,7 @@ run_cmd() {
    if [ $DRY_RUN = false ]; then
       "$@"
       if [ $? -ne 0 ]; then
-         echo "ERROR: Command failed: $@"
+         echo "$MSG_ERROR: Command failed: $@"
          exit 1
       fi
    fi
@@ -25,11 +60,15 @@ CHANGELOG.md must be the only modified file in the working tree.
 Options:
   -h             Show help.
   -v, --verbose  Verbose execution.
+  -C, --color=WHEN
+                 Color mode: always, auto, never
+                 (default: PUBNPM_COLOR env var or auto).
   -n, --dry-run  Dry run.
   -t, --tag=TAG  Use npm publish tag.
   -b, --branch=BRANCH
                  Ensure git branch (default: master, empty string to skip).
   -N, --new      Skip owner check for a new package.
+  -C, --no-color No colors.
 " 1>&2
   exit
 }
@@ -42,6 +81,7 @@ CHANGELOG.md must be the only modified file in the working tree.
 Options:
   -h  Show help.
   -v  Verbose execution.
+  -C  Color mode: always, auto, never (default: PUBNPM_COLOR env var or auto).
   -n  Dry run.
   -t  Use npm publish tag.
   -b  Ensure git branch (default: master, empty string to skip).
@@ -67,11 +107,11 @@ else
 fi
 
 if [ "$GNU_GETOPT" = true ]; then
-  OPTS=`getopt -o hvnt:b:N -l help,verbose,dry-run,tag:,branch:,new -n 'pubnpm' -- "$@"`
+  OPTS=`getopt -o hvC:nt:b:N -l help,verbose,dry-run,tag:,branch:,new -n 'pubnpm' -- "$@"`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 else
-  OPTS=`getopt hvnt:b:N $*`
+  OPTS=`getopt hvC:nt:b:N $*`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 fi
@@ -81,11 +121,13 @@ DRY_RUN=false
 TAG=
 BRANCH=master
 NEW=false
+COLOR=${PUBNPM_COLOR:-auto}
 
 while true; do
   case "$1" in
     -h|--help) help ;;
     -v|--verbose) VERBOSE=true; shift ;;
+    -C|--color) COLOR="$2"; shift; shift ;;
     -n|--dry-run) DRY_RUN=true; shift ;;
     -t|--tag) TAG="$2"; shift; shift ;;
     -b|--branch) BRANCH="$2"; shift; shift ;;
@@ -95,10 +137,16 @@ while true; do
   esac
 done
 
+# colors and common text
+setup_color
+MSG_ERROR=${c_bold}${c_red}ERROR${c_normal}
+MSG_WARNING=${c_bold}${c_yellow}WARNING${c_normal}
+MSG_NOTE=${c_bold}NOTE${c_normal}
+
 VERSION_TYPE=$1
 
 if [[ ! -e package.json ]]; then
-  echo 'ERROR: package.json file does not exist.  Aborting.'
+  echo "$MSG_ERROR: package.json file does not exist.  Aborting."
   exit 1
 fi
 PACKAGE_NAME=$(node -p "require('./package.json').name")
@@ -107,11 +155,11 @@ PACKAGE_DIR=${PWD}
 RELEASE_FOLDER="/tmp/digital-bazaar-release"
 NPM_WHOAMI=$(npm whoami)
 if [ -z "$VERSION_TYPE" ] || ! [[ "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; then
-  echo 'ERROR: A release type must be specified: [major | minor | patch]'
+  echo "$MSG_ERROR: A release type must be specified: [major | minor | patch]"
   exit 1
 fi
 if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]; then
-  echo 'ERROR: Slashes detected in package name.  Aborting.'
+  echo "$MSG_ERROR: Slashes detected in package name.  Aborting."
   exit 1
 fi
 
@@ -129,24 +177,24 @@ fi
 
 if [ "$NEW" = true ]; then
   if [ "$VERBOSE" = true ]; then
-    echo "# NOTE: skipping owner check"
+    echo "# $MSG_NOTE: skipping owner check"
   fi
 else
   # check npm ownership access
   # always run, even in dry-run mode
   if [ "$VERBOSE" = true ]; then
-    echo "# NOTE: checking NPM package ownership"
+    echo "# $MSG_NOTE: checking NPM package ownership"
   fi
   NPM_OWNS=$(npm owner ls | cut -d ' ' -f 1 | grep ^$NPM_WHOAMI$)
 
   if [ x"$NPM_WHOAMI" = x"$NPM_OWNS" ]; then
     if [ "$VERBOSE" = true ]; then
-      echo "# NOTE: NPM package ownership check passed"
+      echo "# $MSG_NOTE: NPM package ownership check passed"
     fi
   else
-    echo "ERROR: NPM pacakge ownership check failed"
+    echo "$MSG_ERROR: NPM pacakge ownership check failed"
     if [ "$DRY_RUN" = true ]; then
-      echo "# NOTE: Continuing in dry-run mode with failed NPM ownership check"
+      echo "# $MSG_NOTE: Continuing in dry-run mode with failed NPM ownership check"
     else
       exit 1
     fi
@@ -156,12 +204,12 @@ fi
 # check git branch
 # always run, even in dry-run mode
 if [ "$VERBOSE" = true ]; then
-  echo "# NOTE: checking git branch"
+  echo "# $MSG_NOTE: checking git branch"
 fi
 
 if [ x"$BRANCH" = x ]; then
   if [ "$VERBOSE" = true ]; then
-    echo "# NOTE: git branch check skipped via options"
+    echo "# $MSG_NOTE: git branch check skipped via options"
   fi
 else
   # newer git
@@ -169,12 +217,12 @@ else
   GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if [ x"$BRANCH" = x"$GIT_BRANCH" ]; then
     if [ "$VERBOSE" = true ]; then
-      echo "# NOTE: git branch check passed"
+      echo "# $MSG_NOTE: git branch check passed"
     fi
   else
-    echo "ERROR: git branch check failed (not on \"$BRANCH\")"
+    echo "$MSG_ERROR: git branch check failed (not on \"$BRANCH\")"
     if [ "$DRY_RUN" = true ]; then
-      echo "# NOTE: Continuing in dry-run mode with failed git branch check"
+      echo "# $MSG_NOTE: Continuing in dry-run mode with failed git branch check"
     else
       exit 1
     fi
@@ -185,7 +233,7 @@ fi
 if [ ! -d "${RELEASE_FOLDER}" ]; then
   run_cmd mkdir -p "${RELEASE_FOLDER}"
   if [ $? -ne 0 ]; then
-    echo "ERROR: Could not create release folder.  Aborting."
+    echo "$MSG_ERROR: Could not create release folder.  Aborting."
     exit 1
   fi
 fi
@@ -194,7 +242,7 @@ howmany() { echo $#; }
 MODIFIED_FILES=$(git ls-files --modified --other --exclude-standard)
 if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
   echo "Modified files:" ${MODIFIED_FILES}
-  echo "ERROR: CHANGELOG.md must be the ONLY modified file.  Aborting."
+  echo "$MSG_ERROR: CHANGELOG.md must be the ONLY modified file.  Aborting."
   exit 1
 fi
 # if changelog is new, it must be added to tracked files
@@ -206,12 +254,12 @@ run_cmd git push --tags
 NEW_VERSION=$(node -p "require('./package.json').version")
 run_cmd cd "${RELEASE_FOLDER}"
 run_cmd rm -rf ${PACKAGE_NAME}
-echo '# NOTE: Waiting two seconds...'
+echo "# $MSG_NOTE: Waiting two seconds..."
 run_cmd sleep 2
 run_cmd git clone $PACKAGE_REPO ${PACKAGE_NAME}
 run_cmd cd ${PACKAGE_NAME}
 if [ $DRY_RUN = true ]; then
-   echo "# NOTE: The following version is the old version due to dry-run mode."
+   echo "# $MSG_NOTE: The following version is the old version due to dry-run mode."
 fi
 run_cmd git checkout tags/v${NEW_VERSION}
 # if convention of a "build" target exists, assume an install is needed
@@ -228,7 +276,7 @@ run_cmd cd ${PACKAGE_DIR}
 run_cmd npm version prepatch -m 'Start %s.'
 DEV_VERSION=$(node -p "require('./package.json').version")
 if [ $DRY_RUN = true ]; then
-   echo "# NOTE: The following version is the old version due to dry-run mode."
+   echo "# $MSG_NOTE: The following version is the old version due to dry-run mode."
 fi
 run_cmd git tag -d v${DEV_VERSION}
 run_cmd git push

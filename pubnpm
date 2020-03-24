@@ -197,7 +197,7 @@ else
       echo "# $MSG_NOTE: NPM package ownership check passed"
     fi
   else
-    echo "$MSG_ERROR: NPM pacakge ownership check failed"
+    echo "$MSG_ERROR: NPM package ownership check failed"
     if [ "$DRY_RUN" = true ]; then
       echo "# $MSG_NOTE: Continuing in dry-run mode with failed NPM ownership check"
     else
@@ -207,7 +207,7 @@ else
 
   if [ "$VERBOSE" = true ]; then
     if [ x"$NPM_OWNER_COUNT" = x"1" ]; then
-      echo "# $MSG_WARNING: NPM multiple pacakge owner check failed, add more maintainers"
+      echo "# $MSG_WARNING: NPM multiple package owner check failed, add more maintainers"
     else
       echo "# $MSG_NOTE: NPM multiple package owners check passed"
     fi

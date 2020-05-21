@@ -158,10 +158,13 @@ if [ -z "$VERSION_TYPE" ] || ! [[ "$VERSION_TYPE" =~ ^(major|minor|patch)$ ]]; t
   echo "$MSG_ERROR: A release type must be specified: [major | minor | patch]"
   exit 1
 fi
-if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]; then
-  echo "$MSG_ERROR: Slashes detected in package name.  Aborting."
-  exit 1
-fi
+
+# FIXME: this does not work with scoped packages like @digitalbazaar/foo
+#
+# if [[ "$PACKAGE_NAME" == *\/* ]] || [[ "$PACKAGE_NAME" == *\\* ]]; then
+#   echo "$MSG_ERROR: Slashes detected in package name.  Aborting."
+#   exit 1
+# fi
 
 if [ "$VERBOSE" = true ]; then
   echo DRY_RUN=$DRY_RUN

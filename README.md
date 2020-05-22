@@ -26,8 +26,9 @@ $ pubbower minor
 
 * `-h` or `--help`: Show help.
 * `-v` or `--verbose`: Be verbose running commands.
+* `-C` or `--color=WHEN`:  Color mode: always, auto, never (default: `PUBNPM_COLOR` env var or `auto`).
 * `-n` or `--dry-run`: Show commands that will be run without executing them.
-* `-t TAG` or `--tag TAG`: Use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
+* `-t TAG` or `--tag=TAG`: Use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
 * `-b BRANCH` or `--branch=BRANCH`: Ensure running on a git branch (default: master, empty string to skip).
 * `-N` or `--new`: Skip owner check for a new package.
 

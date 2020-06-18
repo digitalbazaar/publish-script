@@ -283,9 +283,9 @@ if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ];
   run_cmd npm install
 fi
 if [ x"$TAG" = x ]; then
-  run_cmd npm publish
+  run_cmd npm publish --access public
 else
-  run_cmd npm publish --tag $TAG
+  run_cmd npm publish --tag $TAG --access public
 fi
 run_cmd cd ${PACKAGE_DIR}
 run_cmd npm version prepatch -m 'Start %s.'

@@ -1,0 +1,184 @@
+#!/bin/bash
+
+# color support (to make publishing more fun)
+# https://unix.stackexchange.com/questions/9957/how-to-check-if-bash-can-print-colors
+# examples:
+# echo "${c_red}error${c_normal}"
+# echo "${c_green}success${c_normal}"
+# echo "${c_green}0.052${c_normal} ${c_bold}${c_green}2,816.00 kb${c_normal}"
+setup_color() {
+  # skip in "never" mode
+  if [ x"$COLOR" = never ]; then
+    return
+  fi
+  # check if stdout is a terminal or "always" mode...
+  if [ -t 1 -o x"$COLOR" = always ]; then
+    # see if it supports colors...
+    ncolors=$(tput colors)
+
+    # use colors if available or "always" mode...
+    if [ -n "$ncolors" -o x"$COLOR" = always ] && \
+       [ $ncolors -ge 8 -o x"$COLOR" = always ]; then
+      c_bold="$(tput bold)"
+      c_underline="$(tput smul)"
+      c_standout="$(tput smso)"
+      c_normal="$(tput sgr0)"
+      c_black="$(tput setaf 0)"
+      c_red="$(tput setaf 1)"
+      c_green="$(tput setaf 2)"
+      c_yellow="$(tput setaf 3)"
+      c_blue="$(tput setaf 4)"
+      c_magenta="$(tput setaf 5)"
+      c_cyan="$(tput setaf 6)"
+      c_white="$(tput setaf 7)"
+    fi
+  fi
+}
+
+# Run a command.  Handle verbose option.
+#
+# run_cmd cmd [args...]
+#
+run_cmd() {
+  if [ $VERBOSE = true ]; then
+    echo "$@"
+  fi
+  "$@"
+  if [ $? -ne 0 ]; then
+    echo "$MSG_ERROR: Command failed: $@"
+    exit 1
+  fi
+}
+
+help_gnu() {
+  echo "Usage: pubnpm [OPTION] [major | minor | patch]
+
+CHANGELOG.md must be the only modified file in the working tree.
+
+Options:
+  -h             Show help.
+  -v, --verbose  Verbose execution.
+  -C, --color=WHEN
+                 Color mode: always, auto, never
+                 (default: PUBNPM_COLOR env var or auto).
+  -b, --branch=BRANCH
+                 Ensure git branch (default: master, empty string to skip).
+  -C, --no-color No colors.
+" 1>&2
+  exit
+}
+
+help_not_gnu() {
+  echo "Usage: pubnpm [OPTION] [major | minor | patch]
+
+CHANGELOG.md must be the only modified file in the working tree.
+
+Options:
+  -h  Show help.
+  -v  Verbose execution.
+  -C  Color mode: always, auto, never (default: PUBNPM_COLOR env var or auto).
+  -b  Ensure git branch (default: master, empty string to skip).
+" 1>&2
+  exit
+}
+
+help() {
+  if [ "$GNU_GETOPT" = true ]; then
+    help_gnu
+  else
+    help_not_gnu
+  fi
+}
+
+# check getopt version
+out=$(getopt -T)
+if (( $? != 4 )) && [[ -n $out ]]; then
+  GNU_GETOPT=false
+else
+  GNU_GETOPT=true
+fi
+
+if [ "$GNU_GETOPT" = true ]; then
+  OPTS=`getopt -o hvC:nt:b:N -l help,verbose,dry-run,tag:,branch:,new -n 'pubnpm' -- "$@"`
+  if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
+  eval set -- "$OPTS"
+else
+  OPTS=`getopt hvC:nt:b:N $*`
+  if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
+  eval set -- "$OPTS"
+fi
+
+VERBOSE=false
+BRANCH=master
+COLOR=${PUBNPM_COLOR:-auto}
+
+while true; do
+  case "$1" in
+    -h|--help) help ;;
+    -v|--verbose) VERBOSE=true; shift ;;
+    -C|--color) COLOR="$2"; shift; shift ;;
+    -b|--branch) BRANCH="$2"; shift; shift ;;
+    -N|--new) NEW=true; shift ;;
+    --) shift; break ;;
+    *) break ;;
+  esac
+done
+
+# colors and common text
+setup_color
+MSG_ERROR=${c_bold}${c_red}ERROR${c_normal}
+MSG_WARNING=${c_bold}${c_yellow}WARNING${c_normal}
+MSG_NOTE=${c_bold}NOTE${c_normal}
+
+VERSION_TYPE=$1
+
+if [[ ! -e package.json ]]; then
+  echo "$MSG_ERROR: package.json file does not exist.  Aborting."
+  exit 1
+fi
+
+if [ "$VERBOSE" = true ]; then
+  echo DRY_RUN=$DRY_RUN
+  echo TAG=$TAG
+  echo BRANCH=$BRANCH
+  echo VERSION_TYPE=$VERSION_TYPE
+fi
+
+# check git branch
+# always run, even in dry-run mode
+if [ "$VERBOSE" = true ]; then
+  echo "# $MSG_NOTE: checking git branch"
+fi
+
+if [ x"$BRANCH" = x ]; then
+  if [ "$VERBOSE" = true ]; then
+    echo "# $MSG_NOTE: git branch check skipped via options"
+  fi
+else
+  # newer git
+  #GIT_BRANCH=$(git branch --show-current)
+  GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if [ x"$BRANCH" = x"$GIT_BRANCH" ]; then
+    if [ "$VERBOSE" = true ]; then
+      echo "# $MSG_NOTE: git branch check passed"
+    fi
+  else
+    echo "$MSG_ERROR: git branch check failed (not on \"$BRANCH\")"
+    exit 1
+  fi
+fi
+
+howmany() { echo $#; }
+# other is added here to capture a new changelog
+MODIFIED_FILES=$(git ls-files --modified --other --exclude-standard)
+if [[ $(howmany $MODIFIED_FILES) != "1" ]] || [ "$MODIFIED_FILES" != "CHANGELOG.md" ]; then
+  echo "Modified files:" ${MODIFIED_FILES}
+  echo "$MSG_ERROR: CHANGELOG.md must be the ONLY modified file.  Aborting."
+  exit 1
+fi
+# if changelog is new, it must be added to tracked files
+run_cmd git add CHANGELOG.md
+run_cmd git commit -m 'Update changelog.'
+run_cmd npm version $VERSION_TYPE -m 'Release %s.'
+run_cmd git push
+run_cmd git push --tags

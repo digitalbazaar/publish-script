@@ -180,7 +180,7 @@ fi
 if [ "$NEW" = true ]; then
   if [ "$VERBOSE" = true ]; then
     echo "# $MSG_NOTE: skipping owner check"
-    echo "# $MSG_WARNING: new package, add more maintainrs!"
+    echo "# $MSG_WARNING: new package, add more maintainers!"
   fi
 else
   # check npm ownership access

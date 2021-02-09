@@ -107,11 +107,11 @@ else
 fi
 
 if [ "$GNU_GETOPT" = true ]; then
-  OPTS=`getopt -o hvC:nt:b:N -l help,verbose,dry-run,tag:,branch:,new -n 'pubnpm' -- "$@"`
+  OPTS=`getopt -o hvC:nt:b:N:P:R -l help,verbose,dry-run,tag:,branch:,new,public,restricted -n 'pubnpm' -- "$@"`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 else
-  OPTS=`getopt hvC:nt:b:N $*`
+  OPTS=`getopt hvC:nt:b:N:P:R $*`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 fi
@@ -122,6 +122,7 @@ TAG=
 BRANCH=master
 NEW=false
 COLOR=${PUBNPM_COLOR:-auto}
+NPM_ACCESS=
 
 while true; do
   case "$1" in
@@ -132,6 +133,8 @@ while true; do
     -t|--tag) TAG="$2"; shift; shift ;;
     -b|--branch) BRANCH="$2"; shift; shift ;;
     -N|--new) NEW=true; shift ;;
+    -P|--public) NPM_ACCESS=public; shift ;;
+    -R|--restricted) NPM_ACCESS=restricted; shift ;;
     --) shift; break ;;
     *) break ;;
   esac
@@ -178,6 +181,14 @@ if [ "$VERBOSE" = true ]; then
 fi
 
 if [ "$NEW" = true ]; then
+  # new scoped packages need to be set explicitly to public or restricted
+  if [[ "$PACKAGE_NAME" == @* ]]; then
+    if [ -z "$NPM_ACCESS" ]; then
+      echo "$MSG_ERROR: New scoped packages must also set access via the '--public' or '--restricted' flags. Aborting."
+      exit 1
+    fi
+  fi
+
   if [ "$VERBOSE" = true ]; then
     echo "# $MSG_NOTE: skipping owner check"
     echo "# $MSG_WARNING: new package, add more maintainers!"
@@ -283,9 +294,17 @@ if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ];
   run_cmd npm install
 fi
 if [ x"$TAG" = x ]; then
-  run_cmd npm publish --access public
+  if [ -z "$NPM_ACCESS" ]; then
+    run_cmd npm publish
+  else
+    run_cmd npm publish --access $NPM_ACCESS
+  fi
 else
-  run_cmd npm publish --tag $TAG --access public
+  if [ -z "$NPM_ACCESS" ]; then
+    run_cmd npm publish --tag $TAG
+  else
+    run_cmd npm publish --tag $TAG --access $NPM_ACCESS
+  fi
 fi
 run_cmd cd ${PACKAGE_DIR}
 run_cmd npm version prepatch -m 'Start %s.'

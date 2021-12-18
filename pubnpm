@@ -66,7 +66,7 @@ Options:
   -n, --dry-run  Dry run.
   -t, --tag=TAG  Use npm publish tag.
   -b, --branch=BRANCH
-                 Ensure git branch (default: master, empty string to skip).
+                 Ensure git branch (default: main, empty string to skip).
   -N, --new      Skip owner check for a new package.
   -C, --no-color No colors.
 " 1>&2
@@ -84,7 +84,7 @@ Options:
   -C  Color mode: always, auto, never (default: PUBNPM_COLOR env var or auto).
   -n  Dry run.
   -t  Use npm publish tag.
-  -b  Ensure git branch (default: master, empty string to skip).
+  -b  Ensure git branch (default: main, empty string to skip).
   -N  Skip owner check for a new package.
 " 1>&2
   exit
@@ -119,7 +119,7 @@ fi
 VERBOSE=false
 DRY_RUN=false
 TAG=
-BRANCH=master
+BRANCH=main
 NEW=false
 COLOR=${PUBNPM_COLOR:-auto}
 NPM_ACCESS=

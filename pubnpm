@@ -68,7 +68,10 @@ Options:
   -b, --branch=BRANCH
                  Ensure git branch (default: master, empty string to skip).
   -N, --new      Skip owner check for a new package.
-  -C, --no-color No colors.
+  -P, --public   Used with --new to specify that a scoped package is public.
+  -R, --restricted
+                 Used with --new to specify that a scoped package is
+                 private/restricted.
 " 1>&2
   exit
 }
@@ -86,6 +89,8 @@ Options:
   -t  Use npm publish tag.
   -b  Ensure git branch (default: master, empty string to skip).
   -N  Skip owner check for a new package.
+  -P  Used with -N to specify that a scoped package is public.
+  -R  Used with -N to specify that a scoped package is private/restricted.
 " 1>&2
   exit
 }
@@ -107,11 +112,11 @@ else
 fi
 
 if [ "$GNU_GETOPT" = true ]; then
-  OPTS=`getopt -o hvC:nt:b:N:P:R -l help,verbose,dry-run,tag:,branch:,new,public,restricted -n 'pubnpm' -- "$@"`
+  OPTS=`getopt -o hvC:nt:b:NPR -l help,verbose,color:,dry-run,tag:,branch:,new,public,restricted -n 'pubnpm' -- "$@"`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 else
-  OPTS=`getopt hvC:nt:b:N:P:R $*`
+  OPTS=`getopt hvC:nt:b:NPR $*`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 fi

@@ -66,7 +66,7 @@ Options:
   -n, --dry-run  Dry run.
   -t, --tag=TAG  Use npm publish tag.
   -b, --branch=BRANCH
-                 Ensure git branch (default: master, empty string to skip).
+                 Ensure git branch (default: main, empty string to skip).
   -N, --new      Skip owner check for a new package.
   -P, --public   Used with --new to specify that a scoped package is public.
   -R, --restricted
@@ -87,7 +87,7 @@ Options:
   -C  Color mode: always, auto, never (default: PUBNPM_COLOR env var or auto).
   -n  Dry run.
   -t  Use npm publish tag.
-  -b  Ensure git branch (default: master, empty string to skip).
+  -b  Ensure git branch (default: main, empty string to skip).
   -N  Skip owner check for a new package.
   -P  Used with -N to specify that a scoped package is public.
   -R  Used with -N to specify that a scoped package is private/restricted.
@@ -124,7 +124,7 @@ fi
 VERBOSE=false
 DRY_RUN=false
 TAG=
-BRANCH=master
+BRANCH=main
 NEW=false
 COLOR=${PUBNPM_COLOR:-auto}
 NPM_ACCESS=

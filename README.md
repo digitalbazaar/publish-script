@@ -25,7 +25,7 @@ $ pubnpm patch
 * `-C` or `--color=WHEN`:  Color mode: always, auto, never (default: `PUBNPM_COLOR` env var or `auto`).
 * `-n` or `--dry-run`: Show commands that will be run without executing them.
 * `-t TAG` or `--tag=TAG`: Use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
-* `-b BRANCH` or `--branch=BRANCH`: Ensure running on a git branch (default: master, empty string to skip).
+* `-b BRANCH` or `--branch=BRANCH`: Ensure running on a git branch (default: main, empty string to skip).
 * `-N` or `--new`: Skip owner check for a new package.
 * `-P` or `--public`: Used with `new` to specify that a scoped package is public.
 * `-R` or `--restricted`: Used with `new` to specify that a scoped package is private/restricted.
@@ -40,5 +40,10 @@ pubnpm -v -t dev patch
 
 ### Release a new public scoped package from the main branch
 ```sh
-pubnpm -N -P -b main major
+pubnpm -N -P major
+```
+
+### Release a new public scoped package from the master branch
+```sh
+pubnpm -N -P -b master major
 ```

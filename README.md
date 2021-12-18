@@ -2,15 +2,13 @@
 
 ## Usage
 
-`pubnpm` and `pubbower` scripts are intended to be executed in the repository
-folder immediately after `CHANGELOG.md` has been modified in preparation for the
+The `pubnpm` script is intended to be executed in the repository folder
+immediately after `CHANGELOG.md` has been modified in preparation for the
 release.
 
-`pubnpm` is intended for repositories that are have only a `package.json` file
-or both a `package.json` file and a `bower.json` file. If a `build` script
-exists in `package.json` then `npm install` will be run before publishing.
-
-`pubbower` is intended for repositories that have only a `bower.json` file.
+`pubnpm` is intended for repositories that have a `package.json` file. If a
+`build` script exists in `package.json` then `npm install` will be run before
+publishing.
 
 Both scripts require a single argument, the release type, which is one of the
 following: [patch | minor | major]
@@ -18,10 +16,8 @@ following: [patch | minor | major]
 ```shell
 # a npm patch release
 $ pubnpm patch
-
-# a bower minor release
-$ pubbower minor
 ```
+
 `pubnpm` options:
 
 * `-h` or `--help`: Show help.

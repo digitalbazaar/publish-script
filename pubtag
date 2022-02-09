@@ -35,23 +35,25 @@ setup_color() {
   fi
 }
 
-# Run a command.  Handle verbose option.
+# Run a command.  Handle verbose and dry-run options.
 #
 # run_cmd cmd [args...]
 #
 run_cmd() {
-  if [ $VERBOSE = true ]; then
+  if [ $VERBOSE = true -o $DRY_RUN = true ]; then
     echo "$@"
   fi
-  "$@"
-  if [ $? -ne 0 ]; then
-    echo "$MSG_ERROR: Command failed: $@"
-    exit 1
+  if [ $DRY_RUN = false ]; then
+    "$@"
+    if [ $? -ne 0 ]; then
+      echo "$MSG_ERROR: Command failed: $@"
+      exit 1
+    fi
   fi
 }
 
 help_gnu() {
-  echo "Usage: pubnpm [OPTION] [major | minor | patch]
+  echo "Usage: pubtag [OPTION] [major | minor | patch]
 
 CHANGELOG.md must be the only modified file in the working tree.
 
@@ -61,15 +63,15 @@ Options:
   -C, --color=WHEN
                  Color mode: always, auto, never
                  (default: PUBNPM_COLOR env var or auto).
+  -n, --dry-run  Dry run.
   -b, --branch=BRANCH
                  Ensure git branch (default: main, empty string to skip).
-  -C, --no-color No colors.
 " 1>&2
   exit
 }
 
 help_not_gnu() {
-  echo "Usage: pubnpm [OPTION] [major | minor | patch]
+  echo "Usage: pubtag [OPTION] [major | minor | patch]
 
 CHANGELOG.md must be the only modified file in the working tree.
 
@@ -77,6 +79,7 @@ Options:
   -h  Show help.
   -v  Verbose execution.
   -C  Color mode: always, auto, never (default: PUBNPM_COLOR env var or auto).
+  -n  Dry run.
   -b  Ensure git branch (default: main, empty string to skip).
 " 1>&2
   exit
@@ -99,16 +102,17 @@ else
 fi
 
 if [ "$GNU_GETOPT" = true ]; then
-  OPTS=`getopt -o hvC:nt:b:N -l help,verbose,dry-run,tag:,branch:,new -n 'pubnpm' -- "$@"`
+  OPTS=`getopt -o hvC:nb: -l help,verbose,dry-run,branch: -n 'pubtag' -- "$@"`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 else
-  OPTS=`getopt hvC:nt:b:N $*`
+  OPTS=`getopt hvC:nb: $*`
   if [ $? != 0 ] ; then echo "ERROR: Failed parsing options." >&2 ; exit 1 ; fi
   eval set -- "$OPTS"
 fi
 
 VERBOSE=false
+DRY_RUN=false
 BRANCH=main
 COLOR=${PUBNPM_COLOR:-auto}
 
@@ -117,6 +121,7 @@ while true; do
     -h|--help) help ;;
     -v|--verbose) VERBOSE=true; shift ;;
     -C|--color) COLOR="$2"; shift; shift ;;
+    -n|--dry-run) DRY_RUN=true; shift ;;
     -b|--branch) BRANCH="$2"; shift; shift ;;
     -N|--new) NEW=true; shift ;;
     --) shift; break ;;
@@ -164,7 +169,11 @@ else
     fi
   else
     echo "$MSG_ERROR: git branch check failed (not on \"$BRANCH\")"
-    exit 1
+    if [ "$DRY_RUN" = true ]; then
+      echo "# $MSG_NOTE: Continuing in dry-run mode with failed git branch check"
+    else
+      exit 1
+    fi
   fi
 fi
 

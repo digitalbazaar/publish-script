@@ -40,16 +40,16 @@ setup_color() {
 # run_cmd cmd [args...]
 #
 run_cmd() {
-   if [ $VERBOSE = true -o $DRY_RUN = true ]; then
-      echo "$@"
-   fi
-   if [ $DRY_RUN = false ]; then
-      "$@"
-      if [ $? -ne 0 ]; then
-         echo "$MSG_ERROR: Command failed: $@"
-         exit 1
-      fi
-   fi
+  if [ $VERBOSE = true -o $DRY_RUN = true ]; then
+    echo "$@"
+  fi
+  if [ $DRY_RUN = false ]; then
+    "$@"
+    if [ $? -ne 0 ]; then
+      echo "$MSG_ERROR: Command failed: $@"
+      exit 1
+    fi
+  fi
 }
 
 help_gnu() {

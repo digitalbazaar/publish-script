@@ -54,17 +54,17 @@ Start by cloning this repo somewhere and symlink the two pub* executables into ~
 
 ## Cutting a deployment (via `pubtag`)
 
-Running `pubtag` will result in an updated CHANGELOG.md and TWO new commits, which are automatically pushed back to main.
-Note that this will require admin access on the repo to bypass main push protection.
+Running `pubtag` will result in an updated `CHANGELOG.md` and TWO new commits, which are automatically pushed to `main`.
+Note that this will require admin access on the repo to bypass `main` push protection.
 
 You will not be able to publish a release if you are not an admin and branch protection is enabled.
 
 The process:
 
-- Update CHANGELOG.md by replacing the date placeholders with the current date
+- Update `CHANGELOG.md` by replacing the date placeholders with the current date
   - NOTE: DO NOT create a manual commit
 - Note the semver; note if this is a patch, minor or major update
-- Run pubtag based on the type of update:
+- Run `pubtag` based on the type of update:
   - E.g., for a minor release, `pubtag minor`
 
 Then, if successful you will observe new commits pushed to main and a packaging github action running against main.
@@ -74,7 +74,7 @@ Once completed, take the image artifact tag and revise the associated terraform 
 ### Failures
 
 If there's a failure (e.g., insufficient permissions), you will need to reset some git history.
-Check the latest commit on main before you ran the script.
+Check the latest commit on `origin/main` before you ran the script.
 
 Then do a hard reset:
 

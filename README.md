@@ -48,20 +48,16 @@ pubnpm -N -P major
 pubnpm -N -P -b master major
 ```
 
-# Releases at Digital Bazaar
+# Example usage
 
-Most / many repos here at DB are released via a in-house release process.
-
-You can clone this repo somewhere and symlink the two pub* executables into ~/bin (or some custom location in your PATH).
-
-You can tell if this tool is used by the presence of a DB styled changelog.md file in the root of a given repo.
+Start by cloning this repo somewhere and symlink the two pub* executables into ~/bin (or some custom location in your PATH).
 
 ## Cutting a deployment (via `pubtag`)
 
 Running `pubtag` will result in an updated CHANGELOG.md and TWO new commits, which are automatically pushed back to main.
 Note that this will require admin access on the repo to bypass main push protection.
 
-If you are not an admin, you cannot push a release.
+You will not be able to publish a release if you are not an admin and branch protection is enabled.
 
 The process:
 

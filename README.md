@@ -47,3 +47,51 @@ pubnpm -N -P major
 ```sh
 pubnpm -N -P -b master major
 ```
+
+# Releases at Digital Bazaar
+
+Most / many repos here at DB are released via a in-house release process.
+
+You can clone this repo somewhere and symlink the two pub* executables into ~/bin (or some custom location in your PATH).
+
+You can tell if this tool is used by the presence of a DB styled changelog.md file in the root of a given repo.
+
+## Cutting a deployment (via `pubtag`)
+
+Running `pubtag` will result in an updated CHANGELOG.md and TWO new commits, which are automatically pushed back to main.
+Note that this will require admin access on the repo to bypass main push protection.
+
+If you are not an admin, you cannot push a release.
+
+The process:
+
+- Update CHANGELOG.md by replacing the date placeholders with the current date
+  - NOTE: DO NOT create a manual commit
+- Note the semver; note if this is a patch, minor or major update
+- Run pubtag based on the type of update:
+  - E.g., for a minor release, `pubtag minor`
+
+Then, if successful you will observe new commits pushed to main and a packaging github action running against main.
+
+Once completed, take the image artifact tag and revise the associated terraform repo to deploy.
+
+### Failures
+
+If there's a failure (e.g., insufficient permissions), you will need to reset some git history.
+Check the latest commit on main before you ran the script.
+
+Then do a hard reset:
+
+```sh
+git reset --hard COMMIT
+```
+
+Then, delete the tag:
+
+```sh
+git tag -d TAG
+```
+
+Where `tag` has the format `vMAJOR.MINOR.PATCH`.
+
+You should be back to a clean state with local history matching the published repo.

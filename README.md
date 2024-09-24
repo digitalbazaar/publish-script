@@ -20,15 +20,20 @@ $ pubnpm patch
 
 `pubnpm` options:
 
-* `-h` or `--help`: Show help.
-* `-v` or `--verbose`: Be verbose running commands.
-* `-C` or `--color=WHEN`:  Color mode: always, auto, never (default: `PUBNPM_COLOR` env var or `auto`).
-* `-n` or `--dry-run`: Show commands that will be run without executing them.
-* `-t TAG` or `--tag=TAG`: Use the [npm publish](https://docs.npmjs.com/cli/publish) tag feature
-* `-b BRANCH` or `--branch=BRANCH`: Ensure running on a git branch (default: main, empty string to skip).
-* `-N` or `--new`: Skip owner check for a new package.
-* `-P` or `--public`: Used with `new` to specify that a scoped package is public.
-* `-R` or `--restricted`: Used with `new` to specify that a scoped package is private/restricted.
+- `-h` or `--help`: Show help.
+- `-v` or `--verbose`: Be verbose running commands.
+- `-C` or `--color=WHEN`: Color mode: always, auto, never
+  (default: `PUBNPM_COLOR` env var or `auto`).
+- `-n` or `--dry-run`: Show commands that will be run without executing them.
+- `-t TAG` or `--tag=TAG`: Use the
+  [npm publish](https://docs.npmjs.com/cli/publish) tag feature
+- `-b BRANCH` or `--branch=BRANCH`: Ensure running on a git branch
+  (default: main, empty string to skip).
+- `-N` or `--new`: Skip owner check for a new package.
+- `-P` or `--public`: Used with `new` to specify that a scoped package
+  is public.
+- `-R` or `--restricted`: Used with `new` to specify that a scoped package is
+  private/restricted.
 
 **NOTE**: MacOS only supports short options.
 
@@ -39,25 +44,31 @@ pubnpm -v -t dev patch
 ```
 
 ### Release a new public scoped package from the main branch
+
 ```sh
 pubnpm -N -P major
 ```
 
 ### Release a new public scoped package from the master branch
+
 ```sh
 pubnpm -N -P -b master major
 ```
 
 # Example usage
 
-Start by cloning this repo somewhere and symlink the two pub* executables into ~/bin (or some custom location in your PATH).
+Start by cloning this repo somewhere and symlink the two pub\* executables into
+~/bin (or some custom location in your PATH).
 
 ## Cutting a deployment (via `pubtag`)
 
-Running `pubtag` will result in an updated `CHANGELOG.md` and TWO new commits, which are automatically pushed to `main`.
-Note that this will require admin access on the repo to bypass `main` push protection.
+Running `pubtag` will result in an updated `CHANGELOG.md` and TWO new commits,
+which are automatically pushed to `main`.
+Note that this will require admin access on the repo to bypass `main` push
+protection.
 
-You will not be able to publish a release if you are not an admin and branch protection is enabled.
+You will not be able to publish a release if you are not an admin and branch
+protection is enabled.
 
 The process:
 
@@ -67,14 +78,18 @@ The process:
 - Run `pubtag` based on the type of update:
   - E.g., for a minor release, `pubtag minor`
 
-Then, if successful you will observe new commits pushed to main and a packaging github action running against main.
+Then, if successful you will observe new commits pushed to main and a packaging
+github action running against main.
 
-Once completed, take the image artifact tag and revise the associated terraform repo to deploy.
+Once completed, take the image artifact tag and revise the associated terraform
+repo to deploy.
 
 ### Failures
 
-If there's a failure (e.g., insufficient permissions), you will need to reset some git history.
-Check the latest commit on `origin/main` before you ran the script.
+If there's a failure (e.g., insufficient permissions), you will need to reset
+some git history.
+
+Check the latest commit on `origin/main` before you executed the script.
 
 Then do a hard reset:
 
@@ -90,4 +105,5 @@ git tag -d TAG
 
 Where `tag` has the format `vMAJOR.MINOR.PATCH`.
 
-You should be back to a clean state with local history matching the published repo.
+You should be back to a clean state with local history matching the published
+repo.

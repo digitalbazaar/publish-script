@@ -283,20 +283,22 @@ run_cmd npm version $VERSION_TYPE -m 'Release %s.'
 run_cmd git push
 run_cmd git push --tags
 NEW_VERSION=$(node -p "require('./package.json').version")
-run_cmd cd "${RELEASE_FOLDER}"
-run_cmd rm -rf ${PACKAGE_NAME}
-echo "# $MSG_NOTE: Waiting two seconds..."
-run_cmd sleep 2
-run_cmd git clone $PACKAGE_REPO ${PACKAGE_NAME}
-run_cmd cd ${PACKAGE_NAME}
-if [ $DRY_RUN = true ]; then
-   echo "# $MSG_NOTE: The following version is the old version due to dry-run mode."
-fi
-run_cmd git checkout tags/v${NEW_VERSION}
-# if convention of a "build" target exists, assume an install is needed
-if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ]; then
-  echo "# $MSG_NOTE: \"build\" script found, running install..."
-  run_cmd npm install
+if [ false = true ]; then
+  run_cmd cd "${RELEASE_FOLDER}"
+  run_cmd rm -rf ${PACKAGE_NAME}
+  echo "# $MSG_NOTE: Waiting two seconds..."
+  run_cmd sleep 2
+  run_cmd git clone $PACKAGE_REPO ${PACKAGE_NAME}
+  run_cmd cd ${PACKAGE_NAME}
+  if [ $DRY_RUN = true ]; then
+    echo "# $MSG_NOTE: The following version is the old version due to dry-run mode."
+  fi
+  run_cmd git checkout tags/v${NEW_VERSION}
+  # if convention of a "build" target exists, assume an install is needed
+  if [ $(node -p "'build' in (require('./package.json').scripts || {})") = true ]; then
+    echo "# $MSG_NOTE: \"build\" script found, running install..."
+    run_cmd npm install
+  fi
 fi
 if [ x"$TAG" = x ]; then
   if [ -z "$NPM_ACCESS" ]; then
